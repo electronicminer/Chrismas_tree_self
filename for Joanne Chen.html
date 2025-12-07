@@ -1,8 +1,8 @@
 <!--
-  - @Project: Grand Luxury Tree - Christmas Edition (Cloud Image Support)
+  - @Project: Grand Luxury Tree - Christmas Edition (Cloud Image Support + Music)
   - @Author: wp/electronicminer (Modified for Cloud Support)
   - @Date: 2025-12-07
-  - @Description: 3D Christmas tree with customizable Cloud Image loading.
+  - @Description: 3D Christmas tree with cloud images and background music.
   - 如需使用或分发，请务必保留此作者声明。
 -->
 <!DOCTYPE html>
@@ -192,6 +192,9 @@
         
         <div class="controls-wrapper">
             <div class="btn-group">
+                <!-- 新增音乐按钮 -->
+                <div class="control-btn" id="music-btn">🎵 Play Music</div>
+                
                 <div class="control-btn" id="cam-btn">📷 Enable Gesture</div>
                 <label class="control-btn">
                     Select Local Folder
@@ -244,14 +247,10 @@
             },
             camera: { z: 50 },
             preload: {
-                // 设置为 false 关闭本地自动扫描，因为我们现在使用云端图片
                 autoScanLocal: false, 
-                
-                // 开启云端图片加载
                 useCloudImages: true,
                 
-                // --- 【在这里自定义您的云端图片链接】 ---
-                // 支持 .jpg, .png, .jpeg 等格式
+                // 云端图片列表
                 cloudImageUrls: [
                     "https://i.postimg.cc/Gm9PMSCs/(1).jpg",
                     "https://i.postimg.cc/kGf8sWYF/(1).png",
@@ -364,7 +363,6 @@
                     "https://i.postimg.cc/02K2cp45/(97).jpg",
                     "https://i.postimg.cc/CLnLmj21/(98).jpg",
                     "https://i.postimg.cc/Jzw7gswH/(99).jpg"
-                    // 在这里添加更多链接，注意用逗号分隔，链接用引号包围
                 ],
                 scanCount: 200, 
             }
@@ -393,6 +391,14 @@
         const debugInfo = document.getElementById('debug-info');
         const camBtn = document.getElementById('cam-btn');
         let isCameraRunning = false;
+        
+        // --- 音乐系统 ---
+        // 使用 Kevin MacLeod 的 "We Wish You a Merry Christmas"
+        const bgm = new Audio('https://upload.wikimedia.org/wikipedia/commons/5/52/Kevin_MacLeod_-_We_Wish_You_a_Merry_Christmas.ogg');
+        bgm.loop = true;
+        bgm.volume = 0.5;
+        let isMusicPlaying = false;
+        const musicBtn = document.getElementById('music-btn');
 
         window.setMode = (mode) => {
             if (mode === 'FOCUS_RANDOM') {
@@ -413,7 +419,7 @@
             createParticles(); 
             createDust();
             createSnow();
-            loadPredefinedImages(); // 这里的逻辑已更新，支持云图片
+            loadPredefinedImages();
             setupPostProcessing();
             setupEvents();
             setupTouchAndClick(); 
@@ -903,6 +909,25 @@
             document.getElementById('file-input').addEventListener('change', handleImageUpload);
             document.getElementById('folder-input').addEventListener('change', handleImageUpload);
             camBtn.addEventListener('click', () => { initMediaPipe(); });
+            
+            // 音乐按钮事件
+            musicBtn.addEventListener('click', () => {
+                if (isMusicPlaying) {
+                    bgm.pause();
+                    musicBtn.innerText = "🎵 Play Music";
+                    musicBtn.classList.remove('active');
+                } else {
+                    bgm.play().then(() => {
+                        musicBtn.innerText = "🎵 Pause Music";
+                        musicBtn.classList.add('active');
+                    }).catch(err => {
+                        console.warn("Autoplay blocked, user interaction needed first.", err);
+                        showMsg("Tap again to play");
+                    });
+                }
+                isMusicPlaying = !isMusicPlaying;
+            });
+            
             window.addEventListener('keydown', (e) => {
                 if (e.key.toLowerCase() === 'h') {
                     const controls = document.querySelector('.controls-wrapper');
